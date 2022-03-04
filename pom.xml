@@ -28,6 +28,7 @@
                 <configuration>
                     <archive>
                         <manifest>
+                            <addClasspath>true</addClasspath>
                             <mainClass>ntpServer</mainClass>
                         </manifest>
                     </archive>
