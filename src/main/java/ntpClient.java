@@ -33,16 +33,20 @@ public class ntpClient {
 
             for(int i=0;i<8;i+=1){
 
-                //Public server
+                //Local client connect to public server
                     //InetAddress hostAddr = InetAddress.getByName("tick.mit.edu");
                     //TimeInfo info = client.getTime(hostAddr,123);
 
-                //Cloud server
-                byte[] ipAddr = new byte[] { 10, (byte) 182, 0, 3 }; // internal
-                //byte[] ipAddr = new byte[] { 34, 125, 117, 102 }; // external
+                //Local client connect Cloud server
 
-                InetAddress hostAddr = InetAddress.getByAddress(ipAddr);
-                TimeInfo info = client.getTime(hostAddr,1023);
+                    byte[] ipAddr = new byte[] { 34, 125, 117, 102 };
+                    InetAddress hostAddr = InetAddress.getByAddress(ipAddr);
+                    TimeInfo info = client.getTime(hostAddr,1023);
+
+                //client and server on the same LAN
+                    //byte[] ipAddr = new byte[] { 10, (byte) 182, 0, 3 }; // from 10.180.0.2
+                    //InetAddress hostAddr = InetAddress.getByAddress(ipAddr);
+                    //TimeInfo info = client.getTime(hostAddr,1023);
 
                 info.computeDetails();
                 TimeStamp t1=info.getMessage().getOriginateTimeStamp();
