@@ -85,5 +85,6 @@ public class ntpClient {
 
         bw.close();
         raw.close();
+        bw2.close();
     }
 }
