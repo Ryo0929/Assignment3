@@ -38,9 +38,11 @@ public class ntpClient {
                     //TimeInfo info = client.getTime(hostAddr,123);
 
                 //Cloud server
-                    byte[] ipAddr = new byte[] { 34, 125, 117, 102 };
-                    InetAddress hostAddr = InetAddress.getByAddress(ipAddr);
-                    TimeInfo info = client.getTime(hostAddr,1023);
+                byte[] ipAddr = new byte[] { 10, (byte) 182, 0, 3 }; // internal
+                //byte[] ipAddr = new byte[] { 34, 125, 117, 102 }; // external
+
+                InetAddress hostAddr = InetAddress.getByAddress(ipAddr);
+                TimeInfo info = client.getTime(hostAddr,1023);
 
                 info.computeDetails();
                 TimeStamp t1=info.getMessage().getOriginateTimeStamp();
