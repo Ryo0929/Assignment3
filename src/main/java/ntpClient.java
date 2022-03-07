@@ -3,6 +3,7 @@ import org.apache.commons.net.ntp.TimeStamp;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,56 +26,64 @@ public class ntpClient {
 
         int count=0;
         while(count<15){
+            final ntpClientImpl client = new ntpClientImpl();
 
-            ntpClientImpl client = new ntpClientImpl();
-            client.open();
-            List<Long> delayValues = new ArrayList<Long>();
-            List<Long> offsetValues = new ArrayList<Long>();
+            // We want to timeout if a response takes longer than 10 seconds
+            client.setDefaultTimeout(5000);
+            try {
+                client.open();
+                List<Long> delayValues = new ArrayList<Long>();
+                List<Long> offsetValues = new ArrayList<Long>();
 
-            for(int i=0;i<8;i+=1){
+                for (int i = 0; i < 8; i += 1) {
 
-                //Public server
+                    //Public server
                     //InetAddress hostAddr = InetAddress.getByName("tick.mit.edu");
                     //TimeInfo info = client.getTime(hostAddr,123);
 
-                //Cloud server
-                    byte[] ipAddr = new byte[] { 34, 125, 117, 102 };
+                    //Cloud server
+                    byte[] ipAddr = new byte[]{34, 125, 117, 102};
                     InetAddress hostAddr = InetAddress.getByAddress(ipAddr);
-                    TimeInfo info = client.getTime(hostAddr,1023);
+                    TimeInfo info = client.getTime(hostAddr, 1023);
 
-                info.computeDetails();
-                TimeStamp t1=info.getMessage().getOriginateTimeStamp();
-                TimeStamp t2=info.getMessage().getReceiveTimeStamp();
-                TimeStamp t3=info.getMessage().getTransmitTimeStamp();
-                TimeStamp t4=info.getMessage().getReferenceTimeStamp();
-                raw.write("<burst "+count+", pair "+i+"> "+t1.toString()+", "+t2.toString()+", "+t3.toString()+", "+t4.toString());
-                raw.newLine();
+                    info.computeDetails();
+                    TimeStamp t1 = info.getMessage().getOriginateTimeStamp();
+                    TimeStamp t2 = info.getMessage().getReceiveTimeStamp();
+                    TimeStamp t3 = info.getMessage().getTransmitTimeStamp();
+                    TimeStamp t4 = info.getMessage().getReferenceTimeStamp();
+                    raw.write("<burst " + count + ", pair " + i + "> " + t1.toString() + ", " + t2.toString() + ", " + t3.toString() + ", " + t4.toString());
+                    raw.newLine();
 
-                Long offsetValue = info.getOffset();
-                Long delayValue = info.getDelay();
-                String delay = (delayValue == null) ? "N/A" : delayValue.toString();
-                String offset = (offsetValue == null) ? "N/A" : offsetValue.toString();
+                    Long offsetValue = info.getOffset();
+                    Long delayValue = info.getDelay();
+                    String delay = (delayValue == null) ? "N/A" : delayValue.toString();
+                    String offset = (offsetValue == null) ? "N/A" : offsetValue.toString();
 
-                delayValues.add(delayValue);
-                offsetValues.add(offsetValue);
+                    delayValues.add(delayValue);
+                    offsetValues.add(offsetValue);
 
-                System.out.println(" Roundtrip delay(ms)=" + delay + ", clock offset(ms)=" + offset); // offset in ms
-                bw.write("<"+count+"/"+i+">, "+delay+", "+offset);
-                bw.newLine();
+                    System.out.println(" Roundtrip delay(ms)=" + delay + ", clock offset(ms)=" + offset); // offset in ms
+                    bw.write("<" + count + "/" + i + ">, " + delay + ", " + offset);
+                    bw.newLine();
+                }
+                Long updateValueTheta= Collections.min(delayValues);
+                int minIndex=delayValues.indexOf(updateValueTheta);
+                Long updateValueDelta= offsetValues.get(minIndex);
+                String theta = (updateValueTheta == null) ? "N/A" : updateValueTheta.toString();
+                String delta = (updateValueDelta == null) ? "N/A" : updateValueDelta.toString();
+                System.out.println(" Update values ("+theta+", "+delta+")");
+                bw2.write("<"+count+">"+", "+theta+", "+delta);
+                bw2.newLine();
+            }catch(Exception e){
+                e.printStackTrace();
+                count-=1;
+                System.out.println("socket connecting error, retry again after sleep");
+            }finally {
+                client.close();
+                count+=1;
+                System.out.println("sleep...");
+                Thread.sleep(120 * 1000);
             }
-
-            Long updateValueTheta= Collections.min(delayValues);
-            int minIndex=delayValues.indexOf(updateValueTheta);
-            Long updateValueDelta= offsetValues.get(minIndex);
-            String theta = (updateValueTheta == null) ? "N/A" : updateValueTheta.toString();
-            String delta = (updateValueDelta == null) ? "N/A" : updateValueDelta.toString();
-            System.out.println(" Update values ("+theta+", "+delta+")");
-            bw2.write("<"+count+">"+", "+theta+", "+delta);
-
-            client.close();
-            count+=1;
-            System.out.println("sleep...");
-            Thread.sleep(120 * 1000);
         }
 
         bw.close();
