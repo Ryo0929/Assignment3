@@ -17,9 +17,6 @@ java 11
 ## Network setting
 
 ```
-
-## Contributing
-
 //Local client connect to public server
     //InetAddress hostAddr = InetAddress.getByName("tick.mit.edu");
     //TimeInfo info = client.getTime(hostAddr,123);
@@ -34,6 +31,7 @@ java 11
     //byte[] ipAddr = new byte[] { 10, (byte) 182, 0, 3 };
     //InetAddress hostAddr = InetAddress.getByAddress(ipAddr);
     //TimeInfo info = client.getTime(hostAddr,1023);
+```
 
 ## Limitation
 
