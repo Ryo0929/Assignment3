@@ -14,20 +14,10 @@ public class NTPServerImpl implements Runnable {
     private boolean started;
     private DatagramSocket socket;
 
-    /**
-     * Creates SimpleNTPServer listening on default NTP port.
-     */
     public NTPServerImpl() {
         this(NtpV3Packet.NTP_PORT);
     }
 
-    /**
-     * Creates SimpleNTPServer.
-     *
-     * @param port the local port the server socket is bound to, or
-     *             <code>zero</code> for a system selected free port.
-     * @throws IllegalArgumentException if port number less than 0
-     */
     public NTPServerImpl(final int port) {
         if (port < 0) {
             throw new IllegalArgumentException();
@@ -39,29 +29,14 @@ public class NTPServerImpl implements Runnable {
         return port;
     }
 
-    /**
-     * Returns state of whether time service is running.
-     *
-     * @return true if time service is running
-     */
     public boolean isRunning() {
         return running;
     }
 
-    /**
-     * Returns state of whether time service is running.
-     *
-     * @return true if time service is running
-     */
     public boolean isStarted() {
         return started;
     }
 
-    /**
-     * Connects to server socket and listen for client connections.
-     *
-     * @throws IOException if an I/O error occurs when creating the socket.
-     */
     public void connect() throws IOException {
         if (socket == null) {
             socket = new DatagramSocket(port);
@@ -73,11 +48,6 @@ public class NTPServerImpl implements Runnable {
         }
     }
 
-    /**
-     * Starts time service and provide time to client connections.
-     *
-     * @throws java.io.IOException if an I/O error occurs when creating the socket.
-     */
     public void start() throws IOException {
         if (socket == null) {
             connect();
@@ -88,9 +58,6 @@ public class NTPServerImpl implements Runnable {
         }
     }
 
-    /**
-     * Main method to service client connections.
-     */
     @Override
     public void run() {
         running = true;
@@ -110,14 +77,6 @@ public class NTPServerImpl implements Runnable {
         } while (running);
     }
 
-    /**
-     * Handles incoming packet. If NTP packet is client-mode then respond
-     * to that host with a NTP response packet otherwise ignore.
-     *
-     * @param request incoming DatagramPacket
-     * @param rcvTime time packet received
-     * @throws IOException if an I/O error occurs.
-     */
     protected void handlePacket(final DatagramPacket request, final long rcvTime) throws IOException {
         final NtpV3Packet message = new NtpV3Impl();
         message.setDatagramPacket(request);
@@ -134,14 +93,14 @@ public class NTPServerImpl implements Runnable {
             response.setRootDelay(62);
             response.setRootDispersion((int) (16.51 * 65.536));
 
-            // originate time as defined in RFC-1305 (t1)
+            // originate time (t1)
             response.setOriginateTimeStamp(message.getTransmitTimeStamp());
-            // Receive Time is time request received by server (t2)
+            // Receive Time (t2)
             response.setReceiveTimeStamp(TimeStamp.getNtpTime(rcvTime));
             response.setReferenceTime(response.getReceiveTimeStamp());
             response.setReferenceId(0x4C434C00); // LCL (Undisciplined Local Clock)
 
-            // Transmit time is time reply sent by server (t3)
+            // Transmit time  (t3)
             response.setTransmitTime(TimeStamp.getNtpTime(System.currentTimeMillis()));
 
             final DatagramPacket dp = response.getDatagramPacket();
